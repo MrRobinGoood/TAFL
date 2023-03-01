@@ -1,4 +1,7 @@
+import time
+
 from dude import Dude
+from output_window import App
 
 import re
 
@@ -10,9 +13,18 @@ class Labyrinth(object):
         self.__validate()
         self.dude = Dude(*self.__give_start_coordinates(), self.__give_direction(), self)
 
+    def get_str_labyrinth(self):
+        return self.__labyrinth
+
     def start_labyrinth(self):
-        self.dude.find_way_out()
+        history_of_play_labyrinth = self.dude.find_way_out()
         print('labyrinth solved')
+
+        app = App(history_of_play_labyrinth)
+
+
+        app.mainloop()
+
 
     def give_content(self, x, y):
         return self.__labyrinth_layers[y][x]
@@ -80,6 +92,8 @@ class Labyrinth(object):
             inner_part += i[1:-2]
         if not re.fullmatch(r'[10]+', inner_part):
             raise LabyrinthValidateError('Старт и/или финиш вне стен лабиринта.')
+
+
 
 
 class LabyrinthValidateError(Exception):

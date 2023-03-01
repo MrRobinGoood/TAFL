@@ -17,9 +17,34 @@ class Dude(object):
         return self.__labyrinth.give_content(*forward_coordinates)
 
     def find_way_out(self):
-        # TODO: print labyrinth on every step
+
+        # print in console and collect result in history
+        def get_default_labyrinth():
+            default_labyrinth = self.__labyrinth.get_str_labyrinth().split('\n')
+            for i in range(len(default_labyrinth)):
+                default_labyrinth[i] = list(default_labyrinth[i])
+            return default_labyrinth
+
+        history_of_play_labyrinth = [[f'x: -\ny: -\ndir: -', self.__labyrinth.get_str_labyrinth()]]
+
+        direction_symbol = {'forward': '↓',
+                            'back': '↑',
+                            'left': '←',
+                            'right': '→'}
+
         while self.__labyrinth.give_content(self.__x, self.__y) != 'F':
+            print(self.__str__())
+            labyrinth_with_person = get_default_labyrinth()
+            labyrinth_with_person[self.__y][self.__x] = direction_symbol[self.__direction]
+            for i in range(len(labyrinth_with_person)):
+                labyrinth_with_person[i] = ''.join(labyrinth_with_person[i])
+
+            history_of_play_labyrinth.append([self.__str__(), '\n'.join(labyrinth_with_person)])
+            print('\n'.join(labyrinth_with_person), '\n')
             self.__move()
+
+        return history_of_play_labyrinth
+
 
     def __look_right(self):
         coord_shifts = {'forward': (1, 0),
@@ -55,7 +80,7 @@ class Dude(object):
     def __move(self):
         if self.__look_right() == '1' and self.__look_forward() == '1':
             self.__turn_left()
-        elif self.__look_right() == '1' and self.__look_forward() == '0':
+        elif self.__look_right() == '1' and self.__look_forward() != '1':
             self.__step_forward()
         else:
             self.__turn_right()
