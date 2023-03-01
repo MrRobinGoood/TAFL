@@ -1,32 +1,86 @@
+from dude import Dude
+
 import re
 
 
 class Labyrinth(object):
+    def __init__(self, labyrinth: str):
+        self.__labyrinth = labyrinth
+        self.__labyrinth_layers = self.__get_labyrinth_layers(labyrinth)
+        self.__validate()
+        self.dude = Dude(*self.__give_start_coordinates(), self.__give_direction(), self)
+
+    def start_labyrinth(self):
+        self.dude.find_way_out()
+        print('labyrinth solved')
+
+    def give_content(self, x, y):
+        return self.__labyrinth_layers[y][x]
+
+    def __give_start_coordinates(self):
+        for i in self.__labyrinth_layers:
+            for j in i:
+                if j == 'S':
+                    return i.index(j), self.__labyrinth_layers.index(i)
+
+    def __give_direction(self):
+        wall_directions = {'left wall': 'right',
+                           'right wall': 'left',
+                           'front wall': 'back',
+                           'back wall': 'front'}
+        return wall_directions[self.__find_start()]
+
+    def __find_start(self):
+        walls = {''.join(layer[0] for layer in self.__labyrinth_layers): 'left wall',
+                 ''.join(layer[-1] for layer in self.__labyrinth_layers): 'right wall',
+                 self.__labyrinth_layers[0]: 'front wall',
+                 self.__labyrinth_layers[-1]: 'back wall'}
+        start_location = {}
+        for i in walls.keys():
+            if i.find('S') != -1:
+                start_location[walls[i]] = True
+        if len(start_location) > 1:
+            raise TypeError('Я в углу спасите')
+        elif len(start_location) < 1:
+            raise TypeError('Старт не найден, провалидируйте')
+        else:
+            return tuple(start_location.keys())[0]
+
     @staticmethod
-    def get_labyrinth_layers(labyrinth: str):
+    def __get_labyrinth_layers(labyrinth: str):
         return labyrinth.split('\n')
 
-    def validate(self):
-        pass
+    def __validate(self):
+        self.__check_sizes()
+        self.__check_walls()
+        self.__check_symbols()
+        self.__check_no_s_f_inside()
 
-    def check_sizes(self, labyrinth):
-        labyrinth_layers = self.get_labyrinth_layers(labyrinth)
-        template_len = len(labyrinth_layers[0])
-        for layer in labyrinth_layers:
-            if layer != template_len:
+    def __check_sizes(self):
+        template_len = len(self.__labyrinth_layers[0])
+        for layer in self.__labyrinth_layers:
+            if len(layer) != template_len:
                 raise LabyrinthValidateError('Некорректные размеры лабиринта.')
 
-    def check_symbols(self, labyrinth):
-        if not re.fullmatch(r'[01\n]*S[01\n]*F[01\n]*', labyrinth):
+    def __check_symbols(self):
+        if not re.fullmatch(r'[01F\n]*S[01F\n]*F[01F\n]*|[01F\n]*F[01F\n]*S[01F\n]*', self.__labyrinth):
             raise LabyrinthValidateError('Некорректные символы в введенном лабиринте.')
 
-    def check_walls(self, labyrinth):
-        labyrinth_layers = self.get_labyrinth_layers(labyrinth)
-        left_wall = ''.join(layer[0] for layer in labyrinth_layers)
-        right_wall = ''.join(layer[-1] for layer in labyrinth_layers)
-        walls = labyrinth_layers[0] + labyrinth_layers[-1] + left_wall + right_wall
-        # if re.fullmatch('[1]*')
-        # TODO проверить углы
+    def __check_walls(self):
+        left_wall = ''.join(layer[0] for layer in self.__labyrinth_layers)
+        right_wall = ''.join(layer[-1] for layer in self.__labyrinth_layers)
+        walls = self.__labyrinth_layers[0] + self.__labyrinth_layers[-1] + left_wall + right_wall
+        if not re.fullmatch(r'[1SF]+', walls):
+            raise LabyrinthValidateError('Дырки в стенах лабиринта.')
+        # TODO проверить углы зачем?
+
+    def __check_no_s_f_inside(self):
+        inner_part = ''
+        for i in self.__labyrinth_layers[1:-1]:
+            inner_part += i[1:-2]
+        if not re.fullmatch(r'[10]+', inner_part):
+            raise LabyrinthValidateError('Старт и/или финиш вне стен лабиринта.')
+
 
 class LabyrinthValidateError(Exception):
     def __init__(self, *args):
@@ -40,12 +94,3 @@ class LabyrinthValidateError(Exception):
             return f'LabyrinthValidateError, {self.message[0]}'
         else:
             return 'LabyrinthValidateError has been raised'
-
-
-if __name__ == '__main__':
-    with open('resources/labyrinth.txt', 'r') as file:
-        labyrinth = file.read()
-    labyrinth_layers = Labyrinth.get_labyrinth_layers(labyrinth)
-    left_wall = ''.join(layer[0] for layer in labyrinth_layers)
-    a = Labyrinth()
-    print(a.check_start_finish(labyrinth))
