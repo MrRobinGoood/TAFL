@@ -16,12 +16,6 @@ class Labyrinth(object):
     def get_str_labyrinth(self):
         return self.__labyrinth
 
-    def start_labyrinth(self):
-        history_of_play_labyrinth = self.dude.find_way_out()
-        print('labyrinth solved')
-        app = App(history_of_play_labyrinth)
-        app.mainloop()
-
     def give_content(self, x, y):
         return self.__labyrinth_layers[y][x]
 
@@ -48,9 +42,9 @@ class Labyrinth(object):
             if i.find('S') != -1:
                 start_location[walls[i]] = True
         if len(start_location) > 1:
-            raise TypeError('Я в углу спасите')
+            raise LabyrinthValidateError('Лабиринт введен некорректно: точка входа находится в углу.')
         elif len(start_location) < 1:
-            raise TypeError('Старт не найден, провалидируйте')
+            raise LabyrinthValidateError('Старт не найден, провалидируйте.')
         else:
             return tuple(start_location.keys())[0]
 
@@ -59,9 +53,9 @@ class Labyrinth(object):
         return labyrinth.split('\n')
 
     def __validate(self):
+        self.__check_symbols()
         self.__check_sizes()
         self.__check_walls()
-        self.__check_symbols()
         self.__check_no_s_f_inside()
 
     def __check_sizes(self):
@@ -72,9 +66,9 @@ class Labyrinth(object):
 
     def __check_symbols(self):
         if not re.fullmatch(r'[01F\n]*S[01F\n]*F[01F\n]*|[01F\n]*F[01F\n]*S[01F\n]*', self.__labyrinth):
-            raise LabyrinthValidateError('Некорректные символы в введенном лабиринте: в немм должен быть только один '
+            raise LabyrinthValidateError('Некорректный ввод лабиринта: в нем должен быть только один '
                                          'старт (S), не менее одного финиша (F) и любое количество 0 и 1. Иных символов'
-                                         'быть не должно.')
+                                         ' быть не должно.')
 
     def __check_walls(self):
         left_wall = ''.join(layer[0] for layer in self.__labyrinth_layers)
