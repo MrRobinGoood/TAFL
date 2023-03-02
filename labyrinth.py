@@ -19,12 +19,8 @@ class Labyrinth(object):
     def start_labyrinth(self):
         history_of_play_labyrinth = self.dude.find_way_out()
         print('labyrinth solved')
-
         app = App(history_of_play_labyrinth)
-
-
         app.mainloop()
-
 
     def give_content(self, x, y):
         return self.__labyrinth_layers[y][x]
@@ -39,7 +35,7 @@ class Labyrinth(object):
         wall_directions = {'left wall': 'right',
                            'right wall': 'left',
                            'front wall': 'back',
-                           'back wall': 'front'}
+                           'back wall': 'forward'}
         return wall_directions[self.__find_start()]
 
     def __find_start(self):
@@ -76,7 +72,9 @@ class Labyrinth(object):
 
     def __check_symbols(self):
         if not re.fullmatch(r'[01F\n]*S[01F\n]*F[01F\n]*|[01F\n]*F[01F\n]*S[01F\n]*', self.__labyrinth):
-            raise LabyrinthValidateError('Некорректные символы в введенном лабиринте.')
+            raise LabyrinthValidateError('Некорректные символы в введенном лабиринте: в немм должен быть только один '
+                                         'старт (S), не менее одного финиша (F) и любое количество 0 и 1. Иных символов'
+                                         'быть не должно.')
 
     def __check_walls(self):
         left_wall = ''.join(layer[0] for layer in self.__labyrinth_layers)
@@ -92,8 +90,6 @@ class Labyrinth(object):
             inner_part += i[1:-2]
         if not re.fullmatch(r'[10]+', inner_part):
             raise LabyrinthValidateError('Старт и/или финиш вне стен лабиринта.')
-
-
 
 
 class LabyrinthValidateError(Exception):
